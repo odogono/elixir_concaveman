@@ -39,6 +39,66 @@ defmodule Concaveman.Geometry do
     convex_hull(filtered)
   end
 
+  @epsilon 1.1102230246251565e-16
+  @errbound3 (3.0 + 16.0 * @epsilon) * @epsilon
+
+  def orientation3(a, b, c) do
+    l = (Enum.at(a, 1) - Enum.at(c, 1)) * (Enum.at(b, 0) - Enum.at(c, 0))
+    r = (Enum.at(a, 0) - Enum.at(c, 0)) * (Enum.at(b, 1) - Enum.at(c, 1))
+    det = l - r
+
+    {s, early_return} =
+      cond do
+        l > 0 ->
+          if r <= 0 do
+            {nil, det}
+          else
+            {l + r, nil}
+          end
+
+        l < 0 ->
+          if r >= 0 do
+            {nil, det}
+          else
+            {-(l + r), nil}
+          end
+
+        true ->
+          {nil, det}
+      end
+
+    case early_return do
+      nil ->
+        tol = @errbound3 * s
+
+        if det >= tol or det <= -tol do
+          det
+        else
+          orientation3_exact(a, b, c)
+        end
+
+      value ->
+        value
+    end
+  end
+
+  defp orientation3_exact(m0, m1, m2) do
+    p =
+      sum(
+        sum(prod(Enum.at(m1, 1), Enum.at(m2, 0)), prod(-Enum.at(m2, 1), Enum.at(m1, 0))),
+        sum(prod(Enum.at(m0, 1), Enum.at(m1, 0)), prod(-Enum.at(m1, 1), Enum.at(m0, 0)))
+      )
+
+    n = sum(prod(Enum.at(m0, 1), Enum.at(m2, 0)), prod(-Enum.at(m2, 1), Enum.at(m0, 0)))
+    d = sub(p, n)
+    List.last(d)
+  end
+
+  # Helper functions (these would need to be implemented)
+  defp sum(a, b), do: :not_implemented
+  defp prod(a, b), do: :not_implemented
+  defp sub(a, b), do: :not_implemented
+
   @spec orient_2d_fast(point(), point(), point()) :: number()
   def orient_2d_fast({ax, ay}, {bx, by}, {cx, cy}) do
     (ay - cy) * (bx - cx) - (ax - cx) * (by - cy)

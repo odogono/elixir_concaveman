@@ -25,7 +25,8 @@ extern "C" {
     Point* concaveman_wrapper(
         const Point* points,
         size_t points_count,
-        const int* hull,
+        const Point* hull,
+        // const int* hull,
         size_t hull_count,
         double concavity,
         double lengthThreshold,
@@ -40,7 +41,11 @@ extern "C" {
             cpp_points[i] = {points[i].x, points[i].y};
         }
 
-        std::vector<int> cpp_hull(hull, hull + hull_count);
+        std::vector<std::array<double, 2>> cpp_hull(hull_count);
+        for (size_t i = 0; i < hull_count; ++i) {
+            cpp_hull[i] = {hull[i].x, hull[i].y};
+        }
+        // std::vector<int> cpp_hull(hull, hull + hull_count);
 
         
 
@@ -85,15 +90,24 @@ static bool get_points(ErlNifEnv* env, ERL_NIF_TERM list, std::vector<Point>& po
 // Helper function to convert Erlang term to C array of integers
 static bool get_hull(ErlNifEnv* env, ERL_NIF_TERM list, std::vector<int>& hull) {
     unsigned int length;
-    if (!enif_get_list_length(env, list, &length)) return false;
+    if (!enif_get_list_length(env, list, &length)) {
+      std::cout << "get_hull: could not get list length" << std::endl;
+      return false;
+    }
     
     hull.resize(length);
     ERL_NIF_TERM head, tail = list;
     
     for (unsigned int i = 0; i < length; i++) {
-        if (!enif_get_list_cell(env, tail, &head, &tail)) return false;
+        if (!enif_get_list_cell(env, tail, &head, &tail)) {
+          std::cout << "get_hull: could not get list cell" << std::endl;
+          return false;
+        }
         
-        if (!enif_get_int(env, head, &hull[i])) return false;
+        if (!enif_get_int(env, head, &hull[i])) {
+          std::cout << "get_hull: could not get int from hull index " << i << std::endl;
+          return false;
+        }
     }
     
     return true;
@@ -104,13 +118,29 @@ static ERL_NIF_TERM concaveman(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv
     if (argc != 4) return enif_make_badarg(env);
 
     std::vector<Point> points;
-    std::vector<int> hull;
+    std::vector<Point> hull;
+    // std::vector<int> hull;
     double concavity, lengthThreshold;
 
-    if (!get_points(env, argv[0], points)) return enif_make_badarg(env);
-    if (!get_hull(env, argv[1], hull)) return enif_make_badarg(env);
-    if (!enif_get_double(env, argv[2], &concavity)) return enif_make_badarg(env);
-    if (!enif_get_double(env, argv[3], &lengthThreshold)) return enif_make_badarg(env);
+    if (!get_points(env, argv[0], points)) {
+      enif_raise_exception(env, enif_make_string(env, "could not get points", ERL_NIF_LATIN1));
+      return -1;
+      // return enif_make_badarg(env);
+    }
+    if (!get_points(env, argv[1], hull)) {
+      enif_raise_exception(env, enif_make_string(env, "could not get hull", ERL_NIF_LATIN1));
+      return -1;
+      // return enif_make_badarg(env);
+    }
+    if (!enif_get_double(env, argv[2], &concavity)) {
+      enif_raise_exception(env, enif_make_string(env, "could not get concavity", ERL_NIF_LATIN1));
+      return -1;
+      // return enif_make_badarg(env);
+    }
+    if (!enif_get_double(env, argv[3], &lengthThreshold)) {
+      enif_raise_exception(env, enif_make_string(env, "could not get lengthThreshold", ERL_NIF_LATIN1));
+      return -1;
+    }
 
     size_t result_count;
     Point* result = concaveman_wrapper(points.data(), points.size(), 

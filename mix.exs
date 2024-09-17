@@ -15,17 +15,16 @@ defmodule Concaveman.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      mod: {Concaveman.Application, []},
+      extra_applications: [:logger, :observer, :wx, :runtime_tools]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:build_dot_zig, "~> 0.5.0", runtime: false}
-      # {:elixir_make, "~> 0.6", runtime: false}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:build_dot_zig, "~> 0.5.0", runtime: false},
+      {:phoenix_playground, "~> 0.1.6", only: [:dev], runtime: false}
     ]
   end
 end

@@ -7,6 +7,19 @@ defmodule ConcavemanTest do
   @fixtures_path Path.join(__DIR__, "fixtures")
   defp fixture_path(name), do: Path.join(@fixtures_path, name)
 
+  defp points_and_hull_to_svg(points, hull, width \\ 500, height \\ 500) do
+    svg_points = points_to_svg(points, width, height)
+    svg_hull = hull_to_svg(hull, width, height)
+
+    # Create the SVG
+    """
+    <svg width="#{width}" height="#{height}" xmlns="http://www.w3.org/2000/svg">
+      #{svg_points}
+      #{svg_hull}
+    </svg>
+    """
+  end
+
   defp points_to_svg(points, width \\ 500, height \\ 500) do
     # Find min and max values for x and y
     {min_x, max_x} = Enum.min_max_by(points, fn {x, _} -> x end)
@@ -27,16 +40,11 @@ defmodule ConcavemanTest do
       |> Enum.map(fn {x, y} ->
         x_scaled = (x - min_x) * scale_x + 10
         y_scaled = height - ((y - min_y) * scale_y + 10)
-        ~s(<circle cx="#{x_scaled}" cy="#{y_scaled}" r="3" fill="blue" />)
+        ~s(<circle cx="#{x_scaled}" cy="#{y_scaled}" r="3" fill="yellow" />)
       end)
       |> Enum.join("\n")
 
-    # Create the SVG
-    """
-    <svg width="#{width}" height="#{height}" xmlns="http://www.w3.org/2000/svg">
-      #{svg_points}
-    </svg>
-    """
+    svg_points
   end
 
   def hull_to_svg(points, width \\ 500, height \\ 500) do
@@ -68,12 +76,7 @@ defmodule ConcavemanTest do
           "#{acc} L#{x_scaled},#{y_scaled}"
       end)
 
-    # Create the SVG
-    """
-    <svg width="#{width}" height="#{height}" xmlns="http://www.w3.org/2000/svg">
-      <path d="#{svg_path}" stroke="white" fill="none" />
-    </svg>
-    """
+    "<path d=\"#{svg_path} Z\" stroke=\"white\" fill=\"none\" />"
   end
 
   defp read_points_fixture(name) do
@@ -146,12 +149,42 @@ defmodule ConcavemanTest do
     hull = Geometry.fast_convex_hull(points)
 
     concavity = 3.0
-    length_threshold = 0.01
+    length_threshold = 0.1
 
     result = Concaveman.Native.concaveman(points, hull, concavity, length_threshold)
 
     svg = hull_to_svg(hull)
 
     fixture_path("points-1k-concaveman.svg") |> File.write!(svg)
+  end
+
+  test "random points" do
+    # Set a specific seed for reproducibility
+    :rand.seed(:exsss, {1234, 5678, 9012})
+
+    length_threshold = 0.1
+
+    points = for _ <- 1..500, do: {:rand.uniform(), :rand.uniform()}
+    hull = Geometry.fast_convex_hull(points)
+    svg = points_and_hull_to_svg(points, hull)
+    fixture_path("random-points-hull.svg") |> File.write!(svg)
+
+    concavity = 0.7
+
+    result = Concaveman.Native.concaveman(points, hull, concavity, length_threshold)
+    svg = points_and_hull_to_svg(points, result)
+    fixture_path("random-points-concaveman-#{concavity}.svg") |> File.write!(svg)
+
+    concavity = 2.0
+
+    result = Concaveman.Native.concaveman(points, hull, concavity, length_threshold)
+    svg = points_and_hull_to_svg(points, result)
+    fixture_path("random-points-concaveman-#{concavity}.svg") |> File.write!(svg)
+
+    concavity = 1.0
+
+    result = Concaveman.Native.concaveman(points, hull, concavity, length_threshold)
+    svg = points_and_hull_to_svg(points, result)
+    fixture_path("random-points-concaveman-#{concavity}.svg") |> File.write!(svg)
   end
 end

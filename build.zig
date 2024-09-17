@@ -32,6 +32,9 @@ pub fn build(b: *std.Build) void {
         break :blk b.run(&argv);
     };
 
+    // Add this near the top of the build function
+    // const debug = b.option(bool, "debug", "Enable debug mode") orelse false;
+
     const lib = b.addSharedLibrary(.{
         .name = "concaveman",
         .target = target,
@@ -49,6 +52,7 @@ pub fn build(b: *std.Build) void {
     // This is needed to avoid errors on MacOS when loading the NIF
     lib.linker_allow_shlib_undefined = true;
 
+    // lib.defineCMacro("DEBUG", "1");
 
     // Link against libstdc++
     lib.linkSystemLibrary("stdc++");

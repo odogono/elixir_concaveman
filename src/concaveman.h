@@ -533,7 +533,8 @@ template<class T> void snapshot(
 template<class T, int MAX_CHILDREN> std::vector<std::array<T, 2>> concaveman(
     const std::vector<std::array<T, 2>> &points,
     // start with a convex hull of the points
-    const std::vector<int> &hull,
+    const std::vector<std::array<T, 2>> &hull,
+    // const std::vector<int> &hull,
     // a relative measure of concavity; higher value means simpler hull
     T concavity=2,
     // when a segment goes below this length threshold, it won't be drilled down further
@@ -552,8 +553,10 @@ template<class T, int MAX_CHILDREN> std::vector<std::array<T, 2>> concaveman(
 
     // exit if hull includes all points already
     if (hull.size() == points.size()) {
+        std::cout << "hull.size() == points.size()" << std::endl;
         std::vector<point_type> res;
-        for (auto &i : hull) res.push_back(points[i]);
+        for (auto &i : hull) res.push_back(i);
+        // for (auto &i : hull) res.push_back(points[i]);
         return res;
     }
 
@@ -569,8 +572,9 @@ template<class T, int MAX_CHILDREN> std::vector<std::array<T, 2>> concaveman(
     std::list<circ_elem_ptr_type> queue;
 
     // turn the convex hull into a linked list and populate the initial edge queue with the nodes
-    for (auto &idx : hull) {
-        auto &p = points[idx];
+    for (auto &p : hull) {
+        // auto &p = &hullp;// hull[idx];
+        // auto &p = points[idx];
         tree.erase(p, { p[0], p[1], p[0], p[1] });
         last = circList.insert(last, p);
         queue.push_back(last);
