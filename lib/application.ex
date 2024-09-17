@@ -3,7 +3,8 @@ defmodule Concaveman.Application do
 
   def start(_type, _args) do
     children = [
-      {PhoenixPlayground, options()}
+      {PhoenixPlayground, options()},
+      Concaveman.GeoJSONStore
     ]
 
     opts = [strategy: :one_for_one, name: Concaveman.Supervisor]
