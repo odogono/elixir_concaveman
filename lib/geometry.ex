@@ -95,9 +95,9 @@ defmodule Concaveman.Geometry do
   end
 
   # Helper functions (these would need to be implemented)
-  defp sum(a, b), do: :not_implemented
-  defp prod(a, b), do: :not_implemented
-  defp sub(a, b), do: :not_implemented
+  defp sum(_a, _b), do: :not_implemented
+  defp prod(_a, _b), do: :not_implemented
+  defp sub(_a, _b), do: :not_implemented
 
   @spec orient_2d_fast(point(), point(), point()) :: number()
   def orient_2d_fast({ax, ay}, {bx, by}, {cx, cy}) do

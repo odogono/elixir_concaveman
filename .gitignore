@@ -30,3 +30,4 @@ elixir_concaveman-*.tar
 .vscode
 
 .zig-cache
+zig-out

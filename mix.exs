@@ -14,10 +14,14 @@ defmodule Concaveman.MixProject do
 
   # Run "mix help compile.app" to learn about applications.
   def application do
-    [
-      mod: {Concaveman.Application, []},
-      extra_applications: [:logger, :observer, :wx, :runtime_tools]
-    ]
+    if Mix.env() == :dev do
+      [
+        mod: {Concaveman.Application, []},
+        extra_applications: [:logger, :observer, :wx, :runtime_tools]
+      ]
+    else
+      [extra_applications: [:logger]]
+    end
   end
 
   # Run "mix help deps" to learn about dependencies.

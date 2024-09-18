@@ -2,13 +2,15 @@ defmodule Concaveman.Application do
   use Application
 
   def start(_type, _args) do
-    children = [
-      {PhoenixPlayground, options()},
-      Concaveman.GeoJSONStore
-    ]
+    if Mix.env() == :dev do
+      children = [
+        {PhoenixPlayground, options()},
+        Concaveman.GeoJSONStore
+      ]
 
-    opts = [strategy: :one_for_one, name: Concaveman.Supervisor]
-    Supervisor.start_link(children, opts)
+      opts = [strategy: :one_for_one, name: Concaveman.Supervisor]
+      Supervisor.start_link(children, opts)
+    end
   end
 
   defp options() do

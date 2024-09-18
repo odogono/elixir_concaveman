@@ -13,7 +13,11 @@ pub fn build(b: *std.Build) void {
     // Standard optimization options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
     // set a preferred release mode, allowing the user to decide how to optimize.
-    const optimize = b.standardOptimizeOption(.{});
+    const optimize = b.option(
+        std.builtin.OptimizeMode,
+        "optimize",
+        "Prioritize performance, safety, or binary size (default: ReleaseFast)",
+    ) orelse .ReleaseFast;
 
     // Get ERTS_INCLUDE_DIR from the env populated by :build_dot_zig
     const erts_include_dir = std.process.getEnvVarOwned(b.allocator, "ERTS_INCLUDE_DIR") catch blk: {
@@ -39,7 +43,6 @@ pub fn build(b: *std.Build) void {
         .name = "concaveman",
         .target = target,
         .optimize = optimize,
-        // .linkLibCpp = true, // Add this line to link against C++ standard library
     });
 
     // lib.linkLibCpp = true;
